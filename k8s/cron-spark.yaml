@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: spark-pi-nightly
+  namespace: spark
+spec:
+  schedule: "0 2 * * *"  # 2 AM UTC daily
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 600
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: spark-runner
+          containers:
+          - name: driver
+            image: {{IMAGE}}
+            imagePullPolicy: IfNotPresent
+            command: ["/opt/spark/bin/spark-submit"]
+            args:
+              [
+                "--master", "k8s://https://kubernetes.default.svc",
+                "--deploy-mode", "cluster",
+                "--conf", "spark.kubernetes.container.image={{IMAGE}}",
+                "--conf", "spark.kubernetes.namespace=spark",
+                "--conf", "spark.executor.instances=2",
+                "--conf", "spark.executor.memory=1g",
+                "--conf", "spark.executor.cores=1",
+                "local:///opt/app/app.py"
+              ]
+            resources:
+              requests: { cpu: "500m", memory: "512Mi" }
+              limits:   { cpu: "1",    memory: "1Gi" }

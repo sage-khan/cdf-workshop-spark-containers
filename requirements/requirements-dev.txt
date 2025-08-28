@@ -1,0 +1,4 @@
+pytest>=7.0
+pandas>=2.0
+pandera>=0.18.0
+great_expectations>=0.18.0

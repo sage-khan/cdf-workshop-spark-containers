@@ -1,0 +1,31 @@
+# Minikube-only Makefile
+APP       ?= spark-app
+TAG       ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo dev)
+IMAGE     := $(APP):$(TAG)
+
+.PHONY: minikube-up minikube-down build load-minikube deploy-local logs clean
+
+minikube-up:
+	minikube start --cpus=3 --memory=4096
+
+minikube-down:
+	minikube delete || true
+
+build:
+	docker build -t $(IMAGE) -f docker/Dockerfile .
+
+# Preload image into Minikube's image store
+load-minikube:
+	minikube image load $(IMAGE)
+
+# Replace {{IMAGE}} placeholder and apply manifests
+_deploy_apply:
+	sed 's#{{IMAGE}}#$(IMAGE)#g' k8s/job-spark.yaml | kubectl apply -f -
+
+deploy-local: build load-minikube _deploy_apply
+
+logs:
+	kubectl logs job/spark-pi -n spark -f || true
+
+clean:
+	kubectl delete job spark-pi -n spark --ignore-not-found

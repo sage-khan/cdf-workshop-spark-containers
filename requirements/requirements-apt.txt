@@ -1,0 +1,23 @@
+# Core tools required for local demo
+kubectl
+kind
+docker.io
+make
+git
+curl
+jq
+
+# Optional: for Minikube alternative (not needed if using kind)
+minikube
+
+# Optional security & policy tooling (used by Makefile targets: sbom, scan, sign, policy)
+# Note: these may require vendor apt repos; see each project's install docs.
+# syft (SBOM generator)
+# trivy (vulnerability scanner)
+# cosign (image signing)
+# conftest (OPA policy tests)
+
+# Common SSL/apt helpers (often present already)
+ca-certificates
+gnupg
+apt-transport-https
